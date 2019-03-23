@@ -40,7 +40,13 @@ void Camera_tp_dealloc(Camera * camera) {
     Py_TYPE(camera)->tp_free(camera);
 }
 
+PyMemberDef Camera_members[] = {
+    {"fov", T_FLOAT, offsetof(Camera, fov), 0, 0},
+    {0},
+};
+
 PyType_Slot Camera_slots[] = {
+    {Py_tp_members, Camera_members},
     {Py_tp_dealloc, Camera_tp_dealloc},
     {0},
 };
