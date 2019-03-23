@@ -36,7 +36,12 @@ Camera * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return camera;
 }
 
+void Camera_tp_dealloc(Camera * camera) {
+    Py_TYPE(camera)->tp_free(camera);
+}
+
 PyType_Slot Camera_slots[] = {
+    {Py_tp_dealloc, Camera_tp_dealloc},
     {0},
 };
 
