@@ -36,6 +36,21 @@ Camera * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return camera;
 }
 
+PyObject * Camera_meth_focus(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"target", NULL};
+
+    glm::vec3 target;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "(fff)", keywords, v_xyz(target))) {
+        return 0;
+    }
+
+    glm::vec3 forward = target - self->position;
+    self->h = atan2f(forward.y, forward.x);
+    self->v = atan2f(forward.z, sqrtf(forward.x * forward.x + forward.y * forward.y));
+    Py_RETURN_NONE;
+}
+
 PyObject * Camera_get_position(Camera * self) {
     return Py_BuildValue("fff", self->position.x, self->position.y, self->position.z);
 }
@@ -50,6 +65,7 @@ void Camera_tp_dealloc(Camera * camera) {
 }
 
 PyMethodDef Camera_methods[] = {
+    {"focus", (PyCFunction)Camera_meth_focus, METH_VARARGS | METH_KEYWORDS, 0},
     {0},
 };
 
