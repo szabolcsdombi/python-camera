@@ -14,8 +14,6 @@ python setup.py develop
 
 ## Cheat Sheet
 
-### import
-
 ```py
 import camera
 ```
@@ -45,14 +43,12 @@ mat = cam.matrix(ratio, near, far)
 # mat is a bytes object (a 4x4 matrix of floats)
 ```
 
-### project
+### projection
 
 ```py
 pt = cam.project(point=(0.0, 0.0, 0.0), viewport=(0, 0, 100, 100), near=0.1, far=100.0)
 # pt is a point in screen coordinates, the z value is the depth
 ```
-
-### unproject
 
 ```py
 pt = cam.unproject(point=(50.0, 50.0, 0.5), viewport=(0, 0, 100, 100), near=0.1, far=100.0)
