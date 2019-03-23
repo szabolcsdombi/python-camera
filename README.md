@@ -30,8 +30,8 @@ cam = camera.camera(position=(4.0, 3.0, 2.0), target=(0.0, 0.0, 0.0), fov=45.0)
 ```py
 cam.move(forward=1.5, left=0.0, up=0.0)
 
-cam.turn(left=0.1, up=0.0)
-# left and up are given in radians
+cam.turn(left=15.0, up=0.0)
+# left and up are given in degrees
 
 cam.focus(target=(0.0, 0.0, 1.0))
 ```
