@@ -3,9 +3,11 @@
 #include <structmember.h>
 
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/constants.hpp"
 
 #define v_xyz(obj) &obj.x, &obj.y, &obj.z
+#define v_xyzw(obj) &obj.x, &obj.y, &obj.z, &obj.w
 
 struct Camera {
     PyObject_HEAD
@@ -88,6 +90,48 @@ PyObject * Camera_meth_focus(Camera * self, PyObject * args, PyObject * kwargs) 
     Py_RETURN_NONE;
 }
 
+PyObject * Camera_meth_project(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"point", "viewport", "near", "far", NULL};
+
+    glm::vec3 point;
+    glm::ivec4 viewport;
+    float znear = 0.1f;
+    float zfar = 1000.0f;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "(fff)(iiii)|ff", keywords, v_xyz(point), v_xyzw(viewport), &znear, &zfar)) {
+        return 0;
+    }
+
+    float ratio = (float)viewport.z / viewport.w;
+    glm::vec3 forward = glm::vec3(cosf(self->h) * cosf(self->v), sinf(self->h) * cosf(self->v), sinf(self->v));
+    glm::vec3 up = glm::vec3(-cosf(self->h) * sinf(self->v), -sinf(self->h) * sinf(self->v), cosf(self->v));
+    glm::mat4 proj = glm::perspective(glm::radians(self->fov), ratio, znear, zfar);
+    glm::mat4 view = glm::lookAt(self->position, self->position + forward, up);
+    glm::vec3 result = glm::project(point, view, proj, viewport);
+    return Py_BuildValue("fff", result.x, result.y, result.z);
+}
+
+PyObject * Camera_meth_unproject(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"point", "viewport", "near", "far", NULL};
+
+    glm::vec3 point;
+    glm::ivec4 viewport;
+    float znear = 0.1f;
+    float zfar = 1000.0f;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "(fff)(iiii)|ff", keywords, v_xyz(point), v_xyzw(viewport), &znear, &zfar)) {
+        return 0;
+    }
+
+    float ratio = (float)viewport.z / viewport.w;
+    glm::vec3 forward = glm::vec3(cosf(self->h) * cosf(self->v), sinf(self->h) * cosf(self->v), sinf(self->v));
+    glm::vec3 up = glm::vec3(-cosf(self->h) * sinf(self->v), -sinf(self->h) * sinf(self->v), cosf(self->v));
+    glm::mat4 view = glm::perspective(glm::radians(self->fov), ratio, znear, zfar);
+    glm::mat4 proj = glm::lookAt(self->position, self->position + forward, up);
+    glm::vec3 result = glm::unProject(point, view, proj, viewport);
+    return Py_BuildValue("fff", result.x, result.y, result.z);
+}
+
 PyObject * Camera_get_position(Camera * self) {
     return Py_BuildValue("fff", self->position.x, self->position.y, self->position.z);
 }
@@ -105,6 +149,8 @@ PyMethodDef Camera_methods[] = {
     {"move", (PyCFunction)Camera_meth_move, METH_VARARGS | METH_KEYWORDS, 0},
     {"turn", (PyCFunction)Camera_meth_turn, METH_VARARGS | METH_KEYWORDS, 0},
     {"focus", (PyCFunction)Camera_meth_focus, METH_VARARGS | METH_KEYWORDS, 0},
+    {"project", (PyCFunction)Camera_meth_project, METH_VARARGS | METH_KEYWORDS, 0},
+    {"unproject", (PyCFunction)Camera_meth_unproject, METH_VARARGS | METH_KEYWORDS, 0},
     {0},
 };
 
