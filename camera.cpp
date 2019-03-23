@@ -49,6 +49,10 @@ void Camera_tp_dealloc(Camera * camera) {
     Py_TYPE(camera)->tp_free(camera);
 }
 
+PyMethodDef Camera_methods[] = {
+    {0},
+};
+
 PyGetSetDef Camera_getset[] = {
     {"position", (getter)Camera_get_position, 0, 0},
     {"target", (getter)Camera_get_target, 0, 0},
@@ -61,6 +65,7 @@ PyMemberDef Camera_members[] = {
 };
 
 PyType_Slot Camera_slots[] = {
+    {Py_tp_methods, Camera_methods},
     {Py_tp_members, Camera_members},
     {Py_tp_getset, Camera_getset},
     {Py_tp_dealloc, Camera_tp_dealloc},
