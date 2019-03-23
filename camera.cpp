@@ -90,6 +90,24 @@ PyObject * Camera_meth_focus(Camera * self, PyObject * args, PyObject * kwargs) 
     Py_RETURN_NONE;
 }
 
+PyObject * Camera_meth_matrix(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"ratio", "near", "far", NULL};
+
+    float ratio = 1.0f;
+    float znear = 0.1f;
+    float zfar = 1000.0f;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|fff", keywords, &ratio, &znear, &zfar)) {
+        return 0;
+    }
+
+    glm::vec3 forward = glm::vec3(cosf(self->h) * cosf(self->v), sinf(self->h) * cosf(self->v), sinf(self->v));
+    glm::vec3 up = glm::vec3(-cosf(self->h) * sinf(self->v), -sinf(self->h) * sinf(self->v), cosf(self->v));
+    glm::mat4 matrix = glm::perspective(glm::radians(self->fov), ratio, znear, zfar);
+    matrix *= glm::lookAt(self->position, self->position + forward, up);
+    return PyBytes_FromStringAndSize((char *)&matrix, sizeof(matrix));
+}
+
 PyObject * Camera_meth_project(Camera * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"point", "viewport", "near", "far", NULL};
 
@@ -149,6 +167,7 @@ PyMethodDef Camera_methods[] = {
     {"move", (PyCFunction)Camera_meth_move, METH_VARARGS | METH_KEYWORDS, 0},
     {"turn", (PyCFunction)Camera_meth_turn, METH_VARARGS | METH_KEYWORDS, 0},
     {"focus", (PyCFunction)Camera_meth_focus, METH_VARARGS | METH_KEYWORDS, 0},
+    {"matrix", (PyCFunction)Camera_meth_matrix, METH_VARARGS | METH_KEYWORDS, 0},
     {"project", (PyCFunction)Camera_meth_project, METH_VARARGS | METH_KEYWORDS, 0},
     {"unproject", (PyCFunction)Camera_meth_unproject, METH_VARARGS | METH_KEYWORDS, 0},
     {0},
