@@ -36,9 +36,24 @@ Camera * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return camera;
 }
 
+PyObject * Camera_get_position(Camera * self) {
+    return Py_BuildValue("fff", self->position.x, self->position.y, self->position.z);
+}
+
+PyObject * Camera_get_target(Camera * self) {
+    glm::vec3 target = self->position + glm::vec3(cosf(self->h) * cosf(self->v), sinf(self->h) * cosf(self->v), sinf(self->v));
+    return Py_BuildValue("fff", target.x, target.y, target.z);
+}
+
 void Camera_tp_dealloc(Camera * camera) {
     Py_TYPE(camera)->tp_free(camera);
 }
+
+PyGetSetDef Camera_getset[] = {
+    {"position", (getter)Camera_get_position, 0, 0},
+    {"target", (getter)Camera_get_target, 0, 0},
+    {0},
+};
 
 PyMemberDef Camera_members[] = {
     {"fov", T_FLOAT, offsetof(Camera, fov), 0, 0},
@@ -47,6 +62,7 @@ PyMemberDef Camera_members[] = {
 
 PyType_Slot Camera_slots[] = {
     {Py_tp_members, Camera_members},
+    {Py_tp_getset, Camera_getset},
     {Py_tp_dealloc, Camera_tp_dealloc},
     {0},
 };
