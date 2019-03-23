@@ -217,7 +217,7 @@ PyType_Slot Camera_slots[] = {
     {Py_tp_methods, Camera_methods},
     {Py_tp_members, Camera_members},
     {Py_tp_getset, Camera_getset},
-    {Py_tp_dealloc, Camera_tp_dealloc},
+    {Py_tp_dealloc, (void *)Camera_tp_dealloc},
     {0},
 };
 
