@@ -3,6 +3,7 @@
 #include <structmember.h>
 
 #include "glm/glm.hpp"
+#include "glm/gtc/constants.hpp"
 
 #define v_xyz(obj) &obj.x, &obj.y, &obj.z
 
@@ -36,6 +37,42 @@ Camera * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return camera;
 }
 
+PyObject * Camera_meth_move(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"forward", "left", "up", NULL};
+
+    float move_forward = 0.0f;
+    float move_left = 0.0f;
+    float move_up = 0.0f;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|fff", keywords, &move_forward, &move_left, &move_up)) {
+        return 0;
+    }
+
+    glm::vec3 forward = glm::vec3(cosf(self->h) * cosf(self->v), sinf(self->h) * cosf(self->v), sinf(self->v));
+    glm::vec3 left = glm::vec3(-sinf(self->h), cosf(self->h), 0.0f);
+
+    self->position = self->position + forward * move_forward + left * move_left;
+    self->position.z += move_up;
+
+    Py_RETURN_NONE;
+}
+
+PyObject * Camera_meth_turn(Camera * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"left", "up", NULL};
+
+    float turn_left = 0.0f;
+    float turn_up = 0.0f;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ff", keywords, &turn_left, &turn_up)) {
+        return 0;
+    }
+
+    self->h = glm::mod(self->h + glm::radians(turn_left), 2.0f * glm::pi<float>());
+    self->v = glm::clamp(self->v + glm::radians(turn_up), -glm::pi<float>() / 2.0f, glm::pi<float>() / 2.0f);
+
+    Py_RETURN_NONE;
+}
+
 PyObject * Camera_meth_focus(Camera * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"target", NULL};
 
@@ -65,6 +102,8 @@ void Camera_tp_dealloc(Camera * camera) {
 }
 
 PyMethodDef Camera_methods[] = {
+    {"move", (PyCFunction)Camera_meth_move, METH_VARARGS | METH_KEYWORDS, 0},
+    {"turn", (PyCFunction)Camera_meth_turn, METH_VARARGS | METH_KEYWORDS, 0},
     {"focus", (PyCFunction)Camera_meth_focus, METH_VARARGS | METH_KEYWORDS, 0},
     {0},
 };
