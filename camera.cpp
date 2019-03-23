@@ -39,6 +39,35 @@ Camera * meth_camera(PyObject * self, PyObject * args, PyObject * kwargs) {
     return camera;
 }
 
+Camera * meth_interpolate(PyObject * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"camera1", "camera2", "coeff", NULL};
+
+    Camera * camera1;
+    Camera * camera2;
+    float coeff;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!f", keywords, Camera_type, &camera1, Camera_type, camera2, &coeff)) {
+        return 0;
+    }
+
+    Camera * camera = (Camera *)PyObject_New(Camera, Camera_type);
+
+    float h_diff = camera2->h - camera1->h;
+    if (h_diff > glm::pi<float>()) {
+        h_diff -= glm::pi<float>() * 2.0f;
+    }
+    if (h_diff < -glm::pi<float>()) {
+        h_diff += glm::pi<float>() * 2.0f;
+    }
+
+    camera->position = glm::mix(camera1->position, camera2->position, coeff);
+    camera->h = glm::mod(camera1->h + h_diff * coeff, glm::pi<float>() * 2.0f);
+    camera->v = glm::clamp(glm::mix(camera1->v, camera2->v, coeff), -glm::pi<float>() / 2.0f, glm::pi<float>() / 2.0f);
+    camera->fov = glm::mix(camera1->fov, camera2->fov, coeff);
+
+    return camera;
+}
+
 PyObject * Camera_meth_move(Camera * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {"forward", "left", "up", NULL};
 
@@ -196,6 +225,7 @@ PyType_Spec Camera_spec = {"camera.Camera", sizeof(Camera), 0, Py_TPFLAGS_DEFAUL
 
 PyMethodDef module_methods[] = {
     {"camera", (PyCFunction)meth_camera, METH_VARARGS | METH_KEYWORDS, 0},
+    {"interpolate", (PyCFunction)meth_interpolate, METH_VARARGS | METH_KEYWORDS, 0},
     {0},
 };
 
